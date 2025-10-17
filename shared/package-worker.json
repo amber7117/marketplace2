@@ -1,0 +1,19 @@
+{
+  "name": "@trading-platform/shared-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for Shared Service",
+  "main": "src/worker.js",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "i18next": "^23.7.8",
+    "axios": "^1.6.2",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

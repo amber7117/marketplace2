@@ -1,0 +1,28 @@
+name = "virtual-trading-auth"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+JWT_SECRET = "topupformemarketplace"
+JWT_EXPIRE = "30d"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "auth-database"
+database_id = "06c960de-f5c3-4191-bb72-44d32b539240"
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "auth.topupforme.com", custom_domain = true }
+
+[env.production.vars]
+NODE_ENV = "production"
+JWT_SECRET = "topupformemarketplace"
+JWT_EXPIRE = "30d"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "auth-database"
+database_id = "06c960de-f5c3-4191-bb72-44d32b539240"

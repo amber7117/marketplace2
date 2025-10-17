@@ -1,0 +1,24 @@
+name = "virtual-trading-order"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "order-database"
+database_id = "b5c7e6a8-5138-4707-b80b-aa62a729fa8e"
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "order.topupforme.com", custom_domain = true }
+
+[env.production.vars]
+NODE_ENV = "production"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "order-database"
+database_id = "b5c7e6a8-5138-4707-b80b-aa62a729fa8e"

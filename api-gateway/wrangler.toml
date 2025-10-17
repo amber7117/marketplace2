@@ -1,0 +1,64 @@
+name = "virtual-trading-api"
+main = "src/worker.js"
+compatibility_date = "2024-10-15"
+
+# =========================================================
+# 🚀 Default Environment Variables (shared)
+# =========================================================
+[vars]
+NODE_ENV = "production"
+PORT = "3000"
+FRONTEND_URL = "https://www.topupforme.com"
+API_URL = "https://api.topupforme.com"
+
+AUTH_SERVICE_URL = "https://auth.topupforme.com"
+PRODUCT_SERVICE_URL = "https://product.topupforme.com"
+ORDER_SERVICE_URL = "https://order.topupforme.com"
+WALLET_SERVICE_URL = "https://wallet.topupforme.com"
+PAYMENT_SERVICE_URL = "https://payment.topupforme.com"
+NOTIFICATION_SERVICE_URL = "https://notification.topupforme.com"
+
+# =========================================================
+# 🌍 Production Environment
+# =========================================================
+[env.production]
+route = { pattern = "api.topupforme.com", custom_domain = true }
+
+# ✅ Re-declare vars for production (not inherited)
+[env.production.vars]
+NODE_ENV = "production"
+FRONTEND_URL = "https://www.topupforme.com"
+API_URL = "https://api.topupforme.com"
+AUTH_SERVICE_URL = "https://auth.topupforme.com"
+PRODUCT_SERVICE_URL = "https://product.topupforme.com"
+ORDER_SERVICE_URL = "https://order.topupforme.com"
+WALLET_SERVICE_URL = "https://wallet.topupforme.com"
+PAYMENT_SERVICE_URL = "https://payment.topupforme.com"
+NOTIFICATION_SERVICE_URL = "https://notification.topupforme.com"
+
+
+[[env.production.kv_namespaces]]
+binding = "KV"
+id = "2a83825998a74a23af90efb09ed03d1f"
+
+
+# =========================================================
+# 🧪 Development / Preview Environment
+# =========================================================
+[env.development]
+route = { pattern = "www.topupforme.com", custom_domain = true, override_existing_dns_record = true }
+
+
+[env.development.vars]
+NODE_ENV = "development"
+FRONTEND_URL = "https://dev.topupforme.com"
+API_URL = "https://api-dev.topupforme.com"
+
+[[env.development.kv_namespaces]]
+binding = "KV"
+id = "2a83825998a74a23af90efb09ed03d1f"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "marketplace"
+database_id = "1de8944c-c946-4bdb-a798-befc183ebf94"

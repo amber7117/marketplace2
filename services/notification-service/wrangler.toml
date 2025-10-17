@@ -1,0 +1,16 @@
+name = "virtual-trading-notification"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "notification.topupforme.com", custom_domain = true }
+
+[vars]
+NODE_ENV = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "notification-database"
+database_id = "218dc063-1647-491b-96c9-11daeff7291b"

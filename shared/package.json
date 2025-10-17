@@ -1,0 +1,30 @@
+{
+  "name": "@trading-platform/shared",
+  "version": "1.0.0",
+  "description": "Shared utilities and configurations for Virtual Trading Platform microservices",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "keywords": [
+    "shared",
+    "i18n",
+    "currency",
+    "region",
+    "utilities"
+  ],
+  "author": "Virtual Trading Platform",
+  "license": "ISC",
+  "dependencies": {
+    "i18next": "^23.7.8",
+    "i18next-fs-backend": "^2.3.1",
+    "i18next-http-middleware": "^3.5.0",
+    "axios": "^1.6.2",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^8.55.0"
+  }
+}

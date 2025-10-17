@@ -1,0 +1,24 @@
+name = "virtual-trading-wallet"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wallet-database"
+database_id = "35b11931-8af2-4902-8dbf-67e4e670fe7b"
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "wallet.topupforme.com", custom_domain = true }
+
+[env.production.vars]
+NODE_ENV = "production"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "wallet-database"
+database_id = "35b11931-8af2-4902-8dbf-67e4e670fe7b"

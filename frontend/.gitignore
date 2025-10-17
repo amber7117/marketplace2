@@ -1,0 +1,68 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+.next/cache
+.next/static/chunks/pages/_app.js
+.next/static/chunks/pages/_app.js.map
+.next/static/chunks/pages/index.js
+.next/static/chunks/pages/index.js.map
+.next/static/chunks/pages/[[...slug]].js
+.next/static/chunks/pages/[[...slug]].js.map
+.next/static/chunks/pages/404.js
+.next/static/chunks/pages/404.js.map
+.next/static/chunks/pages/500.js
+.next/static/chunks/pages/500.js.map
+.next/static/chunks/pages/500.js.map
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+!.next/typescript/tsconfig.json
+!.next/typescript/tsconfig.tsbuildinfo
+!.next/typescript/tsconfig.tsbuildinfo.readonly
+!.next/typescript/tsconfig.tsbuildinfo.unchecked
+!.next/typescript/tsconfig.tsbuildinfo.unchecked.readonly
+!.next/typescript/tsconfig.tsbuildinfo.checked
+!.next/typescript/tsconfig.tsbuildinfo.checked.readonly
+!.next/typescript/tsconfig.tsbuildinfo.partial
+!.next/typescript/tsconfig.tsbuildinfo.partial.readonly
+!.next/typescript/tsconfig.tsbuildinfo.partial.unchecked
+!.next/typescript/tsconfig.tsbuildinfo.partial.unchecked.readonly
+!.next/typescript/tsconfig.tsbuildinfo.partial.checked
+!.next/typescript/tsconfig.tsbuildinfo.partial.checked.readonly
+!.next/typescript/tsconfig.tsbuildinfo.unchecked.partial
+!.next/typescript/tsconfig.tsbuildinfo.unchecked.partial.readonly
+
+

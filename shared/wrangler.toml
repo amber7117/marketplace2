@@ -1,0 +1,16 @@
+name = "virtual-trading-shared"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+EXCHANGE_RATE_API_KEY = "49da14d952dd93e43e2dfd16"
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "shared.topupforme.com", custom_domain = true }
+
+[env.production.vars]
+NODE_ENV = "production"
+EXCHANGE_RATE_API_KEY = "49da14d952dd93e43e2dfd16"

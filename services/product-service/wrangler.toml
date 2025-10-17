@@ -1,0 +1,26 @@
+name = "virtual-trading-product"
+compatibility_date = "2024-10-15"
+main = "src/worker.js"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NODE_ENV = "production"
+API_VERSION = "v1"
+SERVICE_NAME = "product-service"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "marketplace-products"
+database_id = "4e5556ac-9d3e-484c-8c80-5778429cbb4e"
+
+# Production environment with custom domain
+[env.production]
+route = { pattern = "product.topupforme.com", custom_domain = true }
+
+[env.production.vars]
+NODE_ENV = "production"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "product-database"
+database_id = "4e5556ac-9d3e-484c-8c80-5778429cbb4e"

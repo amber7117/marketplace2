@@ -1,0 +1,61 @@
+{
+  "name": "virtual-trading-platform",
+  "version": "1.0.0",
+  "description": "Virtual Product & Gift Card Trading Platform - Microservices Architecture",
+  "private": true,
+  "workspaces": [
+    "api-gateway",
+    "services/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:auth\" \"npm run dev:product\" \"npm run dev:order\" \"npm run dev:wallet\" \"npm run dev:payment\" \"npm run dev:notification\"",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:auth": "cd services/auth-service && npm run dev",
+    "dev:product": "cd services/product-service && npm run dev",
+    "dev:order": "cd services/order-service && npm run dev",
+    "dev:wallet": "cd services/wallet-service && npm run dev",
+    "dev:payment": "cd services/payment-service && npm run dev",
+    "dev:notification": "cd services/notification-service && npm run dev",
+    "install:all": "npm install && npm run install:shared && npm run install:services",
+    "install:shared": "cd shared && npm install",
+    "install:services": "npm run install:gateway && npm run install:auth && npm run install:product && npm run install:order && npm run install:wallet && npm run install:payment && npm run install:notification",
+    "install:gateway": "cd api-gateway && npm install",
+    "install:auth": "cd services/auth-service && npm install",
+    "install:product": "cd services/product-service && npm install",
+    "install:order": "cd services/order-service && npm install",
+    "install:wallet": "cd services/wallet-service && npm install",
+    "install:payment": "cd services/payment-service && npm install",
+    "install:notification": "cd services/notification-service && npm install",
+    "test": "npm run test:gateway && npm run test:services",
+    "test:gateway": "cd api-gateway && npm test",
+    "test:services": "concurrently \"cd services/auth-service && npm test\" \"cd services/product-service && npm test\" \"cd services/order-service && npm test\" \"cd services/wallet-service && npm test\" \"cd services/payment-service && npm test\" \"cd services/notification-service && npm test\"",
+    "build": "npm run build:gateway && npm run build:services",
+    "build:gateway": "cd api-gateway && npm run build",
+    "build:services": "concurrently \"cd services/auth-service && npm run build\" \"cd services/product-service && npm run build\" \"cd services/order-service && npm run build\" \"cd services/wallet-service && npm run build\" \"cd services/payment-service && npm run build\" \"cd services/notification-service && npm run build\"",
+    "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
+    "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down",
+    "lint": "concurrently \"cd api-gateway && npm run lint\" \"cd services/auth-service && npm run lint\" \"cd services/product-service && npm run lint\" \"cd services/order-service && npm run lint\" \"cd services/wallet-service && npm run lint\" \"cd services/payment-service && npm run lint\" \"cd services/notification-service && npm run lint\"",
+    "format": "concurrently \"cd api-gateway && npm run format\" \"cd services/auth-service && npm run format\" \"cd services/product-service && npm run format\" \"cd services/order-service && npm run format\" \"cd services/wallet-service && npm run format\" \"cd services/payment-service && npm run format\" \"cd services/notification-service && npm run format\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "lerna": "^8.0.2"
+  },
+  "keywords": [
+    "microservices",
+    "virtual-products",
+    "gift-cards",
+    "trading-platform",
+    "nodejs",
+    "express"
+  ],
+  "author": "Virtual Trading Platform Team",
+  "license": "MIT",
+  "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "mongoose": "^8.19.1",
+    "sonner": "^2.0.7"
+  }
+}
