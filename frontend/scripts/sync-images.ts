@@ -13,9 +13,9 @@ const copyFile = promisify(fs.copyFile);
 const stat = promisify(fs.stat);
 
 // 路径配置
-const DATA_DIR = path.resolve(process.cwd(), 'data/products');
-const PUBLIC_DIR = path.resolve(process.cwd(), 'public/products');
-const MANIFEST_PATH = path.resolve(process.cwd(), 'data/manifest.json');
+const PRODUCTS_DIR = path.resolve(process.cwd(), 'data/products');
+const PUBLIC_PRODUCTS_DIR = path.resolve(process.cwd(), 'public/products');
+const MANIFEST_FILE = path.resolve(process.cwd(), 'data/manifest.json');
 
 interface ProductManifest {
   products: Array<{

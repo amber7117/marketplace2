@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "pnpm run sync:images && next build",
+    "build": "npm run sync:images && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
@@ -15,7 +15,7 @@
     "lint:fix": "eslint --fix .",
     "sync:images": "tsx scripts/sync-images.ts",
     "type-check": "tsc --noEmit",
-    "postinstall": "pnpm run sync:images"
+    "postinstall": "npm run sync:images"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.4",
