@@ -1,0 +1,103 @@
+{
+  "id": "razer-gold-my-001",
+  "slug": "razer-gold-malaysia",
+  "name": {
+    "en": "Razer Gold Malaysia",
+    "zh": "Razer Gold 马来西亚"
+  },
+  "description": {
+    "en": "<h2>About Razer Gold</h2><p>Razer Gold is a unified virtual credit system for gamers worldwide. Use it to purchase games, in-game content, and more from thousands of games and entertainment partners across the globe.</p><h3>Features</h3><ul><li>Instant delivery via email</li><li>No expiry date</li><li>Works with thousands of games</li><li>Earn Razer Silver rewards</li><li>Secure and trusted payment</li></ul>",
+    "zh": "<h2>关于 Razer Gold</h2><p>Razer Gold 是全球玩家统一的虚拟信用系统。使用它可以在全球数千个游戏和娱乐合作伙伴处购买游戏、游戏内内容等。</p><h3>特点</h3><ul><li>电子邮件即时交付</li><li>永不过期</li><li>支持数千款游戏</li><li>赚取 Razer Silver 奖励</li><li>安全可信的支付</li></ul>"
+  },
+  "shortDescription": {
+    "en": "Universal gaming wallet for thousands of games worldwide. Instant delivery, no expiry.",
+    "zh": "全球数千款游戏通用的游戏钱包。即时交付，永不过期。"
+  },
+  "category": "gaming-credits",
+  "brand": "Razer",
+  "images": [
+    "/products/razer-gold-malaysia/card-front.jpg",
+    "/products/razer-gold-malaysia/how-to-use.jpg",
+    "/products/razer-gold-malaysia/supported-games.jpg"
+  ],
+  "offers": [
+    {
+      "id": "rg-my-10",
+      "denomination": 10,
+      "currency": "MYR",
+      "price": 10.5,
+      "originalPrice": 12,
+      "discount": 12.5,
+      "stock": 500,
+      "region": "Malaysia"
+    },
+    {
+      "id": "rg-my-20",
+      "denomination": 20,
+      "currency": "MYR",
+      "price": 20.8,
+      "originalPrice": 24,
+      "discount": 13.3,
+      "stock": 500,
+      "region": "Malaysia"
+    },
+    {
+      "id": "rg-my-50",
+      "denomination": 50,
+      "currency": "MYR",
+      "price": 51.5,
+      "originalPrice": 60,
+      "discount": 14.2,
+      "stock": 300,
+      "region": "Malaysia"
+    },
+    {
+      "id": "rg-my-100",
+      "denomination": 100,
+      "currency": "MYR",
+      "price": 102.8,
+      "originalPrice": 120,
+      "discount": 14.3,
+      "stock": 200,
+      "region": "Malaysia"
+    },
+    {
+      "id": "rg-my-500",
+      "denomination": 500,
+      "currency": "MYR",
+      "price": 512,
+      "originalPrice": 600,
+      "discount": 14.7,
+      "stock": 50,
+      "region": "Malaysia"
+    }
+  ],
+  "regions": ["Malaysia"],
+  "tags": ["gaming", "popular", "instant-delivery"],
+  "rating": 4.8,
+  "reviewCount": 1243,
+  "featured": true,
+  "supportedGames": [
+    "Mobile Legends",
+    "PUBG Mobile",
+    "Free Fire",
+    "Genshin Impact",
+    "Call of Duty Mobile",
+    "Arena of Valor",
+    "League of Legends: Wild Rift"
+  ],
+  "usageGuide": {
+    "en": "<ol><li>Go to <a href='https://gold.razer.com'>gold.razer.com</a></li><li>Log in to your Razer account</li><li>Click on 'Reload' and enter your PIN code</li><li>Your Razer Gold balance will be credited instantly</li><li>Use your balance at any supported game or store</li></ol><p><strong>Important:</strong> PIN codes are case-sensitive and cannot be refunded once redeemed.</p>",
+    "zh": "<ol><li>访问 <a href='https://gold.razer.com'>gold.razer.com</a></li><li>登录您的 Razer 账户</li><li>点击充值并输入您的 PIN 码</li><li>您的 Razer Gold 余额将立即到账</li><li>在任何支持的游戏或商店使用您的余额</li></ol><p><strong>重要提示：</strong>PIN 码区分大小写，兑换后无法退款。</p>"
+  },
+  "specifications": {
+    "format": "Digital PIN Code",
+    "delivery": "Email (Instant)",
+    "expiry": "No expiry",
+    "refundable": false,
+    "regionLocked": true,
+    "platform": "Cross-platform"
+  },
+  "createdAt": "2024-01-15T08:00:00.000Z",
+  "updatedAt": "2024-01-20T12:30:00.000Z"
+}

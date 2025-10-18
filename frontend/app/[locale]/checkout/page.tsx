@@ -3,380 +3,254 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Wallet, DollarSign, CheckCircle2 } from 'lucide-react';
-import { useCartStore } from '@/store';
-import { formatCurrency } from '@/lib/currencies';
-import { orderAPI, paymentAPI } from '@/lib/api';
+import { useCartStore } from '@/lib/store/cart-store';
+import { z } from 'zod';
 
-// Type definitions
-interface CartItem {
-  id?: string;
-  productId?: string;
-  name?: string;
-  title?: string;
-  productName?: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+const CheckoutSchema = z.object({
+  email: z.string().email(),
+  phone: z.string().optional(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  address: z.string().min(1),
+  city: z.string().min(1),
+  postalCode: z.string().min(1),
+  country: z.string().min(1),
+});
 
-interface OrderItem {
-  productId: string;
-  quantity: number;
-  price: number;
-}
-
-interface OrderData {
-  items: OrderItem[];
-  totalAmount: number;
-  currency: string;
-  contactEmail: string;
-  contactPhone: string;
-  notes: string;
-}
-
-type PaymentRequestPayload = Parameters<typeof paymentAPI.initiate>[0];
-
-interface FormData {
-  email: string;
-  phone: string;
-  notes: string;
-}
-
-type PaymentMethod = 'card' | 'wallet' | 'crypto';
-
-/**
- * Checkout page for placing an order and initiating payment
- * Works with Zustand store + API layer + next-intl
- */
 export default function CheckoutPage() {
-  const t = useTranslations('checkout');
-  const tCommon = useTranslations('common');
+  const t = useTranslations('Checkout');
   const router = useRouter();
-
-  const { items, getTotal, currency, clearCart } = useCartStore((state) => ({
-    items: state.items,
-    getTotal: state.getTotal,
-    currency: state.currency,
-    clearCart: state.clearCart,
-  }));
-
+  const { items, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
-  const [formData, setFormData] = useState<FormData>({
-    email: '',
-    phone: '',
-    notes: '',
-  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const total = getTotal();
-  const tax = 0; // Digital products no tax
-  const finalTotal = total + tax;
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (loading || !items || items.length === 0) return;
-    
     setLoading(true);
+    setErrors({});
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
 
     try {
-      // Step 1: Create order
-      const orderData: OrderData = {
-        items: items.map((item: CartItem) => {
-          const productId = item.productId ?? item.id;
-          if (!productId) {
-            throw new Error('Cart item missing product identifier');
-          }
+      // 验证表单
+      CheckoutSchema.parse(data);
 
-          return {
-            productId,
-            quantity: item.quantity,
-            price: item.price,
-          };
+      // 创建订单
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,
+          contactInfo: {
+            email: data.email,
+            phone: data.phone,
+          },
+          billingInfo: {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            address: data.address,
+            city: data.city,
+            postalCode: data.postalCode,
+            country: data.country,
+          },
+          paymentMethod: data.paymentMethod || 'credit_card',
         }),
-        totalAmount: finalTotal,
-        currency,
-        contactEmail: formData.email.trim(),
-        contactPhone: formData.phone.trim(),
-        notes: formData.notes.trim(),
-      };
+      });
 
-      const orderResponse = await orderAPI.createOrder(orderData);
-      const createdOrder = orderResponse?.data?.data;
+      const result = await response.json();
 
-      const orderPayload =
-        createdOrder as Partial<Record<'id' | '_id', string>> | undefined;
-      const orderId = orderPayload?.id ?? orderPayload?._id;
-
-      if (!orderId) {
-        throw new Error('Invalid order response: Missing order ID');
-      }
-
-      // Step 2: Initiate payment
-      const paymentRequest: PaymentRequestPayload = {
-        orderId,
-        totalAmount: finalTotal,
-        currency,
-        paymentMethod,
-        items: items.map((item: CartItem) => ({
-          productId: item.productId ?? item.id ?? '',
-          productName: getItemName(item),
-          productSlug: item.productId ?? item.id ?? '',
-          image: getItemImage(item),
-          sku: item.productId ?? item.id ?? '',
-          quantity: item.quantity,
-          price: item.price,
-          currency,
-          region: 'US',
-        })),
-      };
-
-      const paymentResponse = await paymentAPI.initiate(paymentRequest);
-      const redirectUrl = paymentResponse?.data?.paymentUrl;
-
-      // Step 3: Clear cart
-      clearCart();
-
-      // Step 4: Redirect
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
+      if (result.success) {
+        // 跳转到支付页面
+        router.push(`/payment/${result.data.transactionId}`);
       } else {
-        router.push(`/orders/${orderId}?success=true`);
+        alert(result.error?.message || 'Checkout failed');
       }
-    } catch (err: unknown) {
-      console.error('Checkout failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      alert(t('checkoutFailed') || `Checkout failed: ${errorMessage}`);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        err.errors.forEach((error) => {
+          if (error.path[0]) {
+            fieldErrors[error.path[0].toString()] = error.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        alert(err.message || 'An error occurred');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const getItemName = (item: CartItem): string => {
+  if (items.length === 0) {
     return (
-      item?.name ||
-      item?.title ||
-      item?.productName ||
-      tCommon('unknownProduct') ||
-      'Product'
-    );
-  };
-
-  const getItemImage = (item: CartItem): string => {
-    return item.image || '/images/placeholder-product.png';
-  };
-
-  if (!items || items.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <h2 className="text-2xl font-bold">{t('emptyCart')}</h2>
-          <p className="text-muted-foreground">{t('emptyCartDescription')}</p>
-          <Link href="/products">
-            <Button size="lg">{tCommon('continueShopping')}</Button>
-          </Link>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-lg text-gray-600 mb-4">{t('emptyCart')}</p>
+          <a href="/products" className="text-blue-600 hover:underline">
+            {t('continueShopping')}
+          </a>
         </div>
       </div>
     );
   }
 
-  const paymentMethods = [
-    {
-      key: 'card' as PaymentMethod,
-      icon: <CreditCard className="h-6 w-6 text-primary" />,
-      label: t('creditCard'),
-      desc: t('creditCardDescription'),
-    },
-    {
-      key: 'wallet' as PaymentMethod,
-      icon: <Wallet className="h-6 w-6 text-primary" />,
-      label: t('wallet'),
-      desc: t('walletDescription'),
-    },
-    {
-      key: 'crypto' as PaymentMethod,
-      icon: <DollarSign className="h-6 w-6 text-primary" />,
-      label: t('cryptocurrency'),
-      desc: t('cryptocurrencyDescription'),
-    },
-  ];
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">{t('title')}</h1>
+      <h1 className="text-3xl font-bold mb-8">{t('title')}</h1>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left Section: Form */}
-          <div className="lg:col-div-2 space-y-6">
-            {/* Contact Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('contactInformation')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Email */}
-                <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium">
-                    {t('email')} <div className="text-destructive">*</div>
-                  </label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, email: e.target.value }))
-                    }
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t('emailDescription')}
-                  </p>
-                </div>
+      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
+        {/* Contact Information */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">{t('contactInfo')}</h2>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                {t('email')} *
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            </div>
 
-                {/* Phone */}
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-sm font-medium">
-                    {t('phone')}
-                  </label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+60 12-345 6789"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                  />
-                </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium mb-1">
+                {t('phone')}
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+        </section>
 
-                {/* Notes */}
-                <div className="space-y-2">
-                  <label htmlFor="notes" className="text-sm font-medium">
-                    {t('notes')}
-                  </label>
-                  <textarea
-                    id="notes"
-                    rows={3}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    placeholder={t('notesPlaceholder')}
-                    value={formData.notes}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                    }
-                  />
-                </div>
-              </CardContent>
-            </Card>
+        {/* Billing Information */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">{t('billingInfo')}</h2>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+                {t('firstName')} *
+              </label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+            </div>
 
-            {/* Payment Methods */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('paymentMethod')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {paymentMethods.map(({ key, icon, label, desc }) => (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`flex w-full cursor-pointer items-center gap-4 rounded-lg border-2 p-4 text-left transition-colors ${
-                      paymentMethod === key
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                    onClick={() => setPaymentMethod(key)}
-                  >
-                    {icon}
-                    <div className="flex-1">
-                      <p className="font-medium">{label}</p>
-                      <p className="text-sm text-muted-foreground">{desc}</p>
-                    </div>
-                    {paymentMethod === key && (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
-                    )}
-                  </button>
-                ))}
-              </CardContent>
-            </Card>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+                {t('lastName')} *
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+            </div>
           </div>
 
-          {/* Right Section: Order Summary */}
-          <div>
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle>{t('orderSummary')}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Items */}
-                <div className="space-y-3">
-                  {items.map((item: CartItem, index) => {
-                    const name = getItemName(item);
-                    const imgSrc = getItemImage(item);
-                    const itemKey = item.id ?? item.productId ?? `item-${index}`;
-
-                    return (
-                      <div key={itemKey} className="flex gap-3">
-                        <Image
-                          src={imgSrc}
-                          alt={name}
-                          width={64}
-                          height={64}
-                          className="h-16 w-16 rounded object-cover bg-muted"
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium line-clamp-2">
-                            {name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t('qty')}: {item.quantity}
-                          </p>
-                        </div>
-                        <p className="text-sm font-medium">
-                          {formatCurrency(item.price * item.quantity, currency)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Totals */}
-                <div className="space-y-2 border-t pt-4">
-                  <div className="flex justify-between text-sm">
-                    <div className="text-muted-foreground">{t('subtotal')}</div>
-                    <div>{formatCurrency(total, currency)}</div>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <div className="text-muted-foreground">{t('tax')}</div>
-                    <div>{formatCurrency(tax, currency)}</div>
-                  </div>
-                  <div className="flex justify-between border-t pt-2 text-lg font-bold">
-                    <div>{t('total')}</div>
-                    <div>{formatCurrency(finalTotal, currency)}</div>
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? tCommon('processing') : t('placeOrder')}
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground">
-                  {t('secureCheckout')}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="mt-4">
+            <label htmlFor="address" className="block text-sm font-medium mb-1">
+              {t('address')} *
+            </label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              required
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
           </div>
-        </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label htmlFor="city" className="block text-sm font-medium mb-1">
+                {t('city')} *
+              </label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="postalCode" className="block text-sm font-medium mb-1">
+                {t('postalCode')} *
+              </label>
+              <input
+                type="text"
+                id="postalCode"
+                name="postalCode"
+                required
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.postalCode && <p className="text-red-500 text-sm mt-1">{errors.postalCode}</p>}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label htmlFor="country" className="block text-sm font-medium mb-1">
+              {t('country')} *
+            </label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              required
+              defaultValue="Malaysia"
+              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            />
+            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+          </div>
+        </section>
+
+        {/* Payment Method */}
+        <section className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">{t('paymentMethod')}</h2>
+          
+          <select
+            name="paymentMethod"
+            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="credit_card">{t('creditCard')}</option>
+            <option value="fpx">FPX</option>
+            <option value="tng">Touch n Go</option>
+            <option value="boost">Boost</option>
+          </select>
+        </section>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? t('processing') : t('placeOrder')}
+        </button>
       </form>
     </div>
   );

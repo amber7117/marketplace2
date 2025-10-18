@@ -1,236 +1,139 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useTranslations, useLocale } from 'next-intl';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/Button';
-import { ShoppingCart, Star } from 'lucide-react';
-import { formatPrice } from '@/lib/money';
-import { useCartActions } from '@/store/useCartActions';
-import type { Product, Currency } from '@/types/index';
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
-import { 
-  getProductName, 
-  getProductDescription, 
-  getProductPrice, 
-  getProductImage,
-  hasProductDiscount,
-  getDiscountPercentage,
-  isProductInStock
-} from '@/lib/product';
+import { Product } from '@/lib/types';
+import { PricingService } from '@/lib/pricing';
+import { useState, useEffect } from 'react';
 
 interface ProductCardProps {
-  readonly product: Product;
-  readonly size?: 'sm' | 'md' | 'lg';
-  readonly showRating?: boolean;
-  readonly showQuickAdd?: boolean;
+  product: Product;
 }
 
-export function ProductCard({ 
-  product, 
-  size = 'md',
-  showRating = true,
-  showQuickAdd = true
-}: ProductCardProps) {
-  const t = useTranslations('product');
-  const locale = useLocale();
-  const { quickAddToCart } = useCartActions();
+export default function ProductCard({ product }: ProductCardProps) {
+  const t = useTranslations('Product');
+  const [currentCurrency, setCurrentCurrency] = useState('MYR');
+  const [displayPrice, setDisplayPrice] = useState<{
+    price: string;
+    originalPrice?: string;
+    discount?: number;
+  }>({ price: '' });
 
-  const productName = getProductName(product, locale);
-  const productDescription = getProductDescription(product, locale);
-  const productImage = getProductImage(product);
-  const price = getProductPrice(product);
-  const hasDiscount = hasProductDiscount(product);
-  const discountPercent = getDiscountPercentage(product);
-  const inStock = isProductInStock(product);
-
-  // Size configurations
-  const sizeConfig = {
-    sm: {
-      image: 'h-32',
-      content: 'p-3',
-      title: 'text-sm',
-      price: 'text-lg',
-      description: 'text-xs line-clamp-1'
-    },
-    md: {
-      image: 'h-40 sm:h-48',
-      content: 'p-4',
-      title: 'text-base',
-      price: 'text-xl',
-      description: 'text-sm line-clamp-2'
-    },
-    lg: {
-      image: 'h-48 sm:h-56',
-      content: 'p-5',
-      title: 'text-lg',
-      price: 'text-2xl',
-      description: 'text-base line-clamp-3'
-    }
-  };
-
-  const config = sizeConfig[size];
-
-  const handleQuickAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  useEffect(() => {
+    // Get currency from cookie
+    const cookieCurrency = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('currency='))
+      ?.split('=')[1] || 'MYR';
     
-    if (!inStock) return;
-
-    // For quick add, we need to select the first available variant
-    const firstAvailableVariant = product.regionalPricing?.find(v => v.isAvailable);
-    if (firstAvailableVariant) {
-      quickAddToCart(product, firstAvailableVariant);
-    }
-  };
+    setCurrentCurrency(cookieCurrency);
+    
+    // Calculate display price
+    const calculatePrice = async () => {
+      const priceInfo = await PricingService.getDisplayPrice(product, cookieCurrency as any);
+      setDisplayPrice(priceInfo);
+    };
+    
+    calculatePrice();
+  }, [product]);
 
   return (
-    <Card className={cn(
-      "group overflow-hidden transition-all duration-300 bg-card border-border",
-      "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-      "cursor-pointer select-none"
-    )}>
-      <Link href={`/products/${product.slug}`} className="block h-full">
-        {/* Image Container */}
-        <div className={cn(
-          "relative w-full overflow-hidden bg-muted",
-          config.image
-        )}>
-          <Image
-            src={productImage}
-            alt={productName}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-            priority={size === 'lg'}
-          />
-          
-          {/* Discount Badge */}
-          {hasDiscount && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-              -{discountPercent}%
-            </div>
-          )}
-
-          {/* Stock Status */}
-          {!inStock && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="bg-white/90 text-destructive px-3 py-1 rounded-full text-sm font-medium">
-                {t('outOfStock')}
+    <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+      <Link href={`/products/${product.slug}`}>
+        {/* Product Image */}
+        <div className="aspect-w-16 aspect-h-9 bg-gray-200 rounded-t-lg overflow-hidden">
+          <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="text-2xl">🎮</span>
               </div>
+              <span className="text-sm text-gray-600">Product Image</span>
             </div>
-          )}
-
-          {/* Quick Add Button - Desktop */}
-          {showQuickAdd && inStock && (
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button
-                size="icon"
-                className="h-8 w-8 rounded-full bg-primary text-primary-foreground shadow-lg"
-                onClick={handleQuickAdd}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          {/* Quick Add Button - Mobile */}
-          {showQuickAdd && inStock && (
-            <div className="absolute bottom-2 right-2 lg:hidden">
-              <Button
-                size="icon"
-                className="h-8 w-8 rounded-full bg-primary/90 text-primary-foreground shadow-lg backdrop-blur-sm"
-                onClick={handleQuickAdd}
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          </div>
         </div>
 
-        <CardContent className={cn(
-          "space-y-2 h-full flex flex-col",
-          config.content
-        )}>
-          {/* Product Info */}
-          <div className="flex-1 space-y-2">
-            {/* Title and Rating */}
-            <div className="space-y-1">
-              <h3 className={cn(
-                "font-semibold text-foreground leading-tight",
-                config.title
-              )}>
-                {productName}
-              </h3>
-              
-              {showRating && (
-                <div className="flex items-center gap-1">
-                  <div className="flex items-center gap-0.5">
-                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    <span className="text-xs font-medium text-foreground">4.8</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">(128)</span>
-                </div>
+        {/* Product Info */}
+        <div className="p-4">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+            {product.featured && (
+              <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                Featured
+              </span>
+            )}
+          </div>
+          
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+            {product.shortDescription || product.description}
+          </p>
+
+          {/* Rating */}
+          <div className="flex items-center mb-3">
+            <div className="flex text-yellow-400">
+              {'★'.repeat(Math.floor(product.rating))}
+              {'☆'.repeat(5 - Math.floor(product.rating))}
+            </div>
+            <span className="text-sm text-gray-500 ml-2">
+              ({product.reviewCount})
+            </span>
+          </div>
+
+          {/* Price */}
+          <div className="mb-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-gray-900">
+                {displayPrice.price}
+              </span>
+              {displayPrice.originalPrice && (
+                <span className="text-sm text-gray-500 line-through">
+                  {displayPrice.originalPrice}
+                </span>
               )}
             </div>
-
-            {/* Description */}
-            {size !== 'sm' && productDescription && (
-              <p className={cn(
-                "text-muted-foreground leading-relaxed",
-                config.description
-              )}>
-                {productDescription}
-              </p>
+            {displayPrice.discount && (
+              <span className="text-sm text-green-600 font-semibold">
+                {displayPrice.discount}% off
+              </span>
             )}
           </div>
 
-          {/* Price and Actions */}
-          <div className="space-y-2">
-            {/* Price */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-baseline gap-2">
-                <div className={cn(
-                  "font-bold text-primary",
-                  config.price
-                )}>
-                  {formatPrice(price, product.regionalPricing?.[0]?.currency as Currency || 'USD', locale)}
-                </div>
-                
-                {hasDiscount && size !== 'sm' && (
-                  <span className="text-sm text-muted-foreground line-through">
-                    {formatPrice(getProductPrice(product), product.regionalPricing?.[0]?.currency as Currency || 'USD', locale)}
-                  </span>
-                )}
-              </div>
-
-            </div>
-
-            {/* Stock Indicator */}
-            {size !== 'sm' && (
-              <div className={cn(
-                "text-xs font-medium",
-                inStock ? 'text-green-600' : 'text-destructive'
-              )}>
-                {inStock ? t('inStock') : t('outOfStock')}
-              </div>
-            )}
-
-            {/* Quick Add Button - Mobile Bottom */}
-            {showQuickAdd && inStock && size === 'sm' && (
-              <Button
-                size="sm"
-                className="w-full mt-2"
-                onClick={handleQuickAdd}
+          {/* Regions */}
+          <div className="flex flex-wrap gap-1 mb-3">
+            {product.regions.map(region => (
+              <span 
+                key={region}
+                className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
               >
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                {t('addToCart')}
-              </Button>
-            )}
+                {region}
+              </span>
+            ))}
           </div>
-        </CardContent>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button 
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                // Add to cart logic here
+                console.log('Add to cart:', product.slug);
+              }}
+            >
+              {t('addToCart')}
+            </button>
+            <button 
+              className="flex-1 border border-blue-600 text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
+              onClick={(e) => {
+                e.preventDefault();
+                // Buy now logic here
+                console.log('Buy now:', product.slug);
+              }}
+            >
+              {t('buyNow')}
+            </button>
+          </div>
+        </div>
       </Link>
-    </Card>
+    </div>
   );
 }

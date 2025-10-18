@@ -1,20 +1,21 @@
 import { getRequestConfig } from 'next-intl/server';
-import { routing } from './i18n/routing';
+import { cookies, headers } from 'next/headers';
 
-export const locales = ['en', 'zh', 'th', 'vi', 'ms', 'de', 'es', 'fr', 'nl', 'pt', 'ru'] as const;
-export type Locale = (typeof locales)[number];
+export default getRequestConfig(async () => {
+  // This is a workaround until `getRequestConfig` supports cookies and headers
+  const cookieStore = cookies();
+  const headerStore = headers();
+  
+  const locale = cookieStore.get('NEXT_LOCALE')?.value || 
+                headerStore.get('accept-language')?.split(',')[0]?.split('-')[0] || 
+                'en';
 
-export default getRequestConfig(async ({ requestLocale }) => {
-  // This typically corresponds to the `[locale]` segment
-  let locale = await requestLocale;
-
-  // Ensure that a valid locale is used
-  if (!locale || !routing.locales.includes(locale as Locale)) {
-    locale = routing.defaultLocale;
-  }
+  const currency = cookieStore.get('currency')?.value || 'MYR';
 
   return {
-    locale,
+    locale: ['en', 'zh'].includes(locale) ? locale : 'en',
     messages: (await import(`./messages/${locale}.json`)).default,
+    now: new Date(),
+    timeZone: 'Asia/Kuala_Lumpur'
   };
 });

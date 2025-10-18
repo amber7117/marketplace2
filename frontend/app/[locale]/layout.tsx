@@ -1,41 +1,29 @@
-// app/[locale]/layout.tsx
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages, unstable_setRequestLocale } from 'next-intl/server';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
-import '../globals.css';
+import { getMessages } from 'next-intl/server';
+import Navbar from '@/components/Navbar';
 
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-  title: 'topupforme - Virtual Products Trading Platform',
-  description: 'Buy and sell virtual products, gift cards, and game codes online',
-};
-
-export default async function RootLayout({
-  children,
-  params,
-}: {
+interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>; // ✅ 注意：params 是 Promise
-}) {
-  // ✅ 必须 await params
-  const { locale } = await params;
-  unstable_setRequestLocale(locale);
+  params: {
+    locale: string;
+  };
+}
 
+export default async function LocaleLayout({
+  children,
+  params: { locale }
+}: LocaleLayoutProps) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body className={inter.className}>
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          <Navbar />
-          <main className="min-h-screen">{children}</main>
-          <Footer />
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          {children}
+        </main>
+        {/* Footer would go here */}
+      </div>
+    </NextIntlClientProvider>
   );
 }

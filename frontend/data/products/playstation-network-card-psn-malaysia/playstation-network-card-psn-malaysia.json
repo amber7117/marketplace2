@@ -1,0 +1,76 @@
+{
+  "id": "psn-my-001",
+  "slug": "playstation-network-card-psn-malaysia",
+  "name": {
+    "en": "PlayStation Network Card (PSN) Malaysia",
+    "zh": "PlayStation Network 充值卡（PSN）马来西亚"
+  },
+  "description": {
+    "en": "<h2>About PSN Cards</h2><p>PlayStation Network Cards are the perfect way to add funds to your PSN wallet. Use them to purchase games, DLCs, movies, and more from the PlayStation Store.</p><h3>What You Can Buy</h3><ul><li>Full games and indie titles</li><li>Game add-ons and season passes</li><li>PlayStation Plus subscriptions</li><li>Movies and TV shows</li><li>Avatars and themes</li></ul><p>Compatible with PS5, PS4, PS3, and PS Vita.</p>",
+    "zh": "<h2>关于 PSN 充值卡</h2><p>PlayStation Network 充值卡是为您的 PSN 钱包添加资金的完美方式。使用它们可以从 PlayStation Store 购买游戏、DLC、电影等。</p><h3>您可以购买什么</h3><ul><li>完整游戏和独立游戏</li><li>游戏附加内容和季票</li><li>PlayStation Plus 会员</li><li>电影和电视节目</li><li>头像和主题</li></ul><p>兼容 PS5、PS4、PS3 和 PS Vita。</p>"
+  },
+  "shortDescription": {
+    "en": "Add funds to your PlayStation wallet. Buy games, DLCs, and subscriptions instantly.",
+    "zh": "为您的 PlayStation 钱包充值。立即购买游戏、DLC 和订阅。"
+  },
+  "category": "gaming-credits",
+  "brand": "Sony",
+  "images": [
+    "/products/playstation-network-card-psn-malaysia/card-front.jpg",
+    "/products/playstation-network-card-psn-malaysia/ps-store.jpg"
+  ],
+  "offers": [
+    {
+      "id": "psn-my-50",
+      "denomination": 50,
+      "currency": "MYR",
+      "price": 50,
+      "stock": 300,
+      "region": "Malaysia"
+    },
+    {
+      "id": "psn-my-100",
+      "denomination": 100,
+      "currency": "MYR",
+      "price": 100,
+      "stock": 250,
+      "region": "Malaysia"
+    },
+    {
+      "id": "psn-my-150",
+      "denomination": 150,
+      "currency": "MYR",
+      "price": 150,
+      "originalPrice": 160,
+      "discount": 6.25,
+      "stock": 200,
+      "region": "Malaysia"
+    }
+  ],
+  "regions": ["Malaysia"],
+  "tags": ["gaming", "instant-delivery", "playstation"],
+  "rating": 4.9,
+  "reviewCount": 892,
+  "featured": true,
+  "supportedGames": [
+    "God of War Ragnarök",
+    "Horizon Forbidden West",
+    "Gran Turismo 7",
+    "The Last of Us Part II",
+    "Spider-Man: Miles Morales"
+  ],
+  "usageGuide": {
+    "en": "<ol><li>Sign in to PlayStation Network</li><li>Go to PlayStation Store</li><li>Select your avatar at the top of the screen</li><li>Select Redeem Codes</li><li>Enter your 12-digit code and select Continue</li><li>Funds will be added to your wallet immediately</li></ol><p><strong>Note:</strong> Codes are region-locked to Malaysian accounts only.</p>",
+    "zh": "<ol><li>登录 PlayStation Network</li><li>进入 PlayStation Store</li><li>选择屏幕顶部的头像</li><li>选择兑换代码</li><li>输入您的 12 位代码并选择继续</li><li>资金将立即添加到您的钱包</li></ol><p><strong>注意：</strong>代码仅限马来西亚账户使用。</p>"
+  },
+  "specifications": {
+    "format": "12-digit Code",
+    "delivery": "Email (Instant)",
+    "expiry": "No expiry",
+    "refundable": false,
+    "regionLocked": true,
+    "platform": "PS5, PS4, PS3, PS Vita"
+  },
+  "createdAt": "2024-01-10T10:00:00.000Z",
+  "updatedAt": "2024-01-18T15:45:00.000Z"
+}

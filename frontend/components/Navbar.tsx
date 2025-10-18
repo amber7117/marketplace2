@@ -1,261 +1,294 @@
 'use client';
 
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter, usePathname } from '@/i18n/routing';
-import { useState } from 'react';
-import {
-  ShoppingCart,
-  User,
-  Menu,
-  Globe,
-  DollarSign,
-  ChevronDown
-} from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { useCartStore, useUserStore } from '@/store';
-import type { Currency } from '@/types';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { ShoppingCart, Menu, X, Globe, CreditCard, Search } from 'lucide-react';
 
-/* =========================================================
-   🌍 Multi-language & Currency configuration
-========================================================= */
-const languages = [
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'zh', name: '中文', flag: '🇨🇳' },
-    { code: 'th', name: 'ไทย', flag: '🇹🇭' },
-    { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
-    { code: 'ms', name: 'Bahasa Malaysia', flag: '🇲🇾' },
-    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-    { code: 'es', name: 'Español', flag: '🇪🇸' },
-    { code: 'fr', name: 'Français', flag: '🇫🇷' },
-    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
-    { code: 'pt', name: 'Português', flag: '🇵🇹' },
-    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  ];
-
-const currencies = [
-  { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
-  { code: 'MYR', symbol: 'RM', name: 'Malaysian Ringgit', flag: '🇲🇾' },
-  { code: 'THB', symbol: '฿', name: 'Thai Baht', flag: '🇹🇭' },
-  { code: 'VND', symbol: '₫', name: 'Vietnamese Dong', flag: '🇻🇳' },
-  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan', flag: '🇨🇳' },
-  { code: 'IDR', symbol: 'Rp', name: 'Indonesian Rupiah', flag: '🇮🇩' },
-  { code: 'PHP', symbol: '₱', name: 'Philippine Peso', flag: '🇵🇭' },
-  { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
-  { code: 'KRW', symbol: '₩', name: 'South Korean Won', flag: '🇰🇷' },
-  { code: 'INR', symbol: '₹', name: 'Indian Rupee', flag: '🇮🇳' },
-  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal', flag: '🇸🇦' },
-  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
-  { code: 'RUB', symbol: '₽', name: 'Russian Ruble', flag: '🇷🇺' },
-  { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
-  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', flag: '🇸🇬' }
-];
-
-/* =========================================================
-   🌐 Language Selector Component
-========================================================= */
-const LanguageSelector = () => {
+export default function Navbar() {
+  const t = useTranslations('Navigation');
   const router = useRouter();
   const pathname = usePathname();
-  const currentLang = useLocale();
+  const locale = useLocale();
+  
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentCurrency, setCurrentCurrency] = useState('MYR');
+  const [cartCount, setCartCount] = useState(0);
 
-  const handleLanguageChange = (langCode: string) => {
-    router.push(pathname, { locale: langCode });
+  // Initialize currency from cookie
+  useEffect(() => {
+    const cookieCurrency = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('currency='))
+      ?.split('=')[1];
+    
+    if (cookieCurrency && ['MYR', 'USD', 'SGD'].includes(cookieCurrency)) {
+      setCurrentCurrency(cookieCurrency);
+    }
+  }, []);
+
+  const handleLanguageChange = (newLocale: string) => {
+    // Update the locale in the URL
+    const newPathname = pathname.replace(`/${locale}`, `/${newLocale}`);
+    router.push(newPathname);
+    setIsMenuOpen(false);
   };
 
-  const currentLanguage =
-    languages.find((lang) => lang.code === currentLang) || languages[0];
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="min-w-[80px] justify-between gap-1">
-          <div className="flex items-center gap-1">
-            <Globe className="h-4 w-4" />
-            {currentLanguage.code.toUpperCase()}
-          </div>
-          <ChevronDown className="h-3 w-3 opacity-50" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        {languages.map((lang) => (
-          <DropdownMenuItem
-            key={lang.code}
-            onClick={() => handleLanguageChange(lang.code)}
-            className="cursor-pointer"
-          >
-            <div className="mr-2">{lang.flag}</div>
-            <div>{lang.name}</div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
-/* =========================================================
-   💰 Currency Selector Component
-========================================================= */
-const CurrencySelector = () => {
-  const { currency, setCurrency } = useCartStore();
-  const router = useRouter();
-
-  const handleCurrencyChange = (currencyCode: string) => {
-    // Type assertion to ensure currencyCode matches Currency type
-    setCurrency(currencyCode as Currency);
-    // Force a re-render of the page to update prices with new currency
+  const handleCurrencyChange = (currency: string) => {
+    // Set currency cookie and refresh
+    document.cookie = `currency=${currency}; path=/; max-age=31536000; samesite=lax`;
+    setCurrentCurrency(currency);
     router.refresh();
+    setIsMenuOpen(false);
   };
 
-  const currencyObj =
-    currencies.find((c) => c.code === currency) || currencies[0];
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="min-w-[80px] justify-between gap-1">
-          <div className="flex items-center gap-1">
-            <DollarSign className="h-4 w-4" />
-            {currencyObj.code}
-          </div>
-          <ChevronDown className="h-3 w-3 opacity-50" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        {currencies.map((curr) => (
-          <DropdownMenuItem
-            key={curr.code}
-            onClick={() => handleCurrencyChange(curr.code)}
-            className="cursor-pointer"
-          >
-            <div className="mr-2">{curr.flag}</div>
-            <div className="flex-1">{curr.name}</div>
-            <div className="text-muted-foreground">{curr.symbol}</div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
-/* =========================================================
-   🧭 Navbar Component
-========================================================= */
-export function Navbar() {
-  const t = useTranslations('common');
-  const { getItemCount } = useCartStore();
-  const { isAuthenticated } = useUserStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const cartCount = getItemCount();
-
-  return (
-    <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="bg-white shadow-lg border-b">
       <div className="container mx-auto px-4">
-        {/* Top Bar */}
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <div className="text-xl font-bold">{t('appName1')}</div>
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <CreditCard className="w-5 h-5 text-white" />
             </div>
+            <span className="text-xl font-bold text-gray-800">Marketplace</span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden flex-1 max-w-xl mx-8 md:flex">
-        
-          </div>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {/* Search Box - Center */}
+            <form onSubmit={handleSearch} className="flex-1 max-w-md">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={t('search')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  aria-label={t('search')}
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              </div>
+            </form>
 
-          {/* Right Section */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden lg:flex items-center gap-1">
-              <LanguageSelector />
-              <CurrencySelector />
+            {/* Language Selector */}
+            <div className="relative group">
+              <button 
+                className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label={t('language')}
+                aria-haspopup="true"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{locale.toUpperCase()}</span>
+              </button>
+              <div className="absolute top-full right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <button 
+                  onClick={() => handleLanguageChange('en')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg focus:outline-none focus:bg-gray-50"
+                  aria-label="Switch to English"
+                >
+                  English
+                </button>
+                <button 
+                  onClick={() => handleLanguageChange('zh')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-b-lg focus:outline-none focus:bg-gray-50"
+                  aria-label="切换到中文"
+                >
+                  中文
+                </button>
+              </div>
             </div>
 
-            {/* 🛒 Cart Button */}
-            <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                    {cartCount}
-                  </div>
-                )}
-              </Button>
-            </Link>
-
-            {/* 👤 User Menu */}
-            {isAuthenticated ? (
-              <Link href="/profile">
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/login">
-                <Button variant="default" size="sm">
-                  {t('login')}
-                </Button>
-              </Link>
-            )}
-
-            {/* 📱 Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* 🔍 Mobile Search */}
-        <div className="pb-4 md:hidden">
-         
-        </div>
-
-        {/* 📋 Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="border-t pb-4 pt-4 md:hidden">
-            <div className="flex flex-col space-y-3">
-              <div className="flex gap-2">
-                <LanguageSelector />
-                <CurrencySelector />
+            {/* Currency Selector */}
+            <div className="relative group">
+              <button 
+                className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label={t('currency')}
+                aria-haspopup="true"
+              >
+                <span>{currentCurrency}</span>
+              </button>
+              <div className="absolute top-full right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <button 
+                  onClick={() => handleCurrencyChange('MYR')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg focus:outline-none focus:bg-gray-50"
+                  aria-label="Switch to Malaysian Ringgit"
+                >
+                  MYR
+                </button>
+                <button 
+                  onClick={() => handleCurrencyChange('USD')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
+                  aria-label="Switch to US Dollar"
+                >
+                  USD
+                </button>
+                <button 
+                  onClick={() => handleCurrencyChange('SGD')}
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-b-lg focus:outline-none focus:bg-gray-50"
+                  aria-label="Switch to Singapore Dollar"
+                >
+                  SGD
+                </button>
               </div>
-              <Link href="/products">
-                <Button variant="ghost" className="w-full justify-start">
-                  {t('products')}
-                </Button>
+            </div>
+
+            {/* Cart */}
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-gray-600 hover:text-blue-600 transition-colors"
+              aria-label={t('cart')}
+            >
+              <ShoppingCart className="w-6 h-6" />
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                0
+              </span>
+            </button>
+
+            {/* Auth Buttons */}
+            <div className="flex items-center space-x-4">
+              <Link 
+                href="/login" 
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                {t('login')}
               </Link>
-              {isAuthenticated && (
-                <>
-                  <Link href="/orders">
-                    <Button variant="ghost" className="w-full justify-start">
-                      {t('orders')}
-                    </Button>
-                  </Link>
-                  <Link href="/wallet">
-                    <Button variant="ghost" className="w-full justify-start">
-                      {t('wallet')}
-                    </Button>
-                  </Link>
-                </>
-              )}
+              <Link 
+                href="/register" 
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {t('register')}
+              </Link>
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2 text-gray-600 hover:text-blue-600 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden py-4 border-t">
+            <div className="flex flex-col space-y-4">
+              <Link 
+                href="/products" 
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('products')}
+              </Link>
+              <Link 
+                href="/orders" 
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {t('orders')}
+              </Link>
+              
+              <div className="flex space-x-4">
+                <button 
+                  onClick={() => handleLanguageChange('en')}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  EN
+                </button>
+                <button 
+                  onClick={() => handleLanguageChange('zh')}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  中文
+                </button>
+              </div>
+
+              <div className="flex space-x-4">
+                <button 
+                  onClick={() => handleCurrencyChange('MYR')}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  MYR
+                </button>
+                <button 
+                  onClick={() => handleCurrencyChange('USD')}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  USD
+                </button>
+                <button 
+                  onClick={() => handleCurrencyChange('SGD')}
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  SGD
+                </button>
+              </div>
+
+              <button 
+                onClick={() => setIsCartOpen(true)}
+                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                <span>{t('cart')} (0)</span>
+              </button>
+
+              <div className="flex space-x-4 pt-4 border-t">
+                <Link 
+                  href="/login" 
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('login')}
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t('register')}
+                </Link>
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Cart Drawer (placeholder) */}
+      {isCartOpen && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsCartOpen(false)} />
+          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl">
+            <div className="p-4 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">{t('cart')}</h2>
+                <button 
+                  onClick={() => setIsCartOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-gray-500 text-center">Your cart is empty</p>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
